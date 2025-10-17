@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualizador de PDF Base64</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+	
+    h2 {
+      color: #2c3e50;
+	  text-align: center;
+	  margin-top: 0px;     /* Reduz espaço acima do título */
+	  margin-bottom: 10px; /* Espaço abaixo */
+      line-height: 1.2;    /* Altura da linha mais compacta */
+	  
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #8A4DB3;
+      color: white;
+      transition: background 0.3s;
+      margin-right: 10px;
+      margin-bottom: 20px;
+    }
+    button:hover {
+      background-color: #A87DC9;
+    }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .info {
+      margin-bottom: 20px;
+      background: #eef;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+	.spinner {
+	  display: none;
+	  margin-bottom: 20px;
+	  text-align: center;
+	}
+	.spinner svg {
+	  width: 40px;
+	  height: 40px;
+	  animation: spin 1s linear infinite;
+	}
+	@keyframes spin {
+	  0% { transform: rotate(0deg); }
+	  100% { transform: rotate(360deg); }
+	}
+
+  </style>
+</head>
+<body>
+<h2>Visualizador de PDF Webhook</h2>
+	<div class="container">	
+    <textarea id="jsonInput" placeholder="Cole aqui o JSON do response gerado a partir da Clicksign..."></textarea>
+    <button onclick="processarJson()">Processar JSON</button>
+	 <button onclick="baixarConvertido()">Download PDF convertido</button>
+	<div class="spinner" id="spinner">
+	  <svg viewBox="0 0 50 50">
+		<circle cx="25" cy="25" r="20" stroke="#0078d4" stroke-width="5" fill="none" stroke-linecap="round"/>
+	  </svg>
+	</div>
+
+    <p class="error" id="erro"></p>
+
+    <div class="info" id="cabecalho"></div>
+
+    <h3>PDF: document.downloads.converted_file_base64</h3>
+    <iframe id="pdfViewer"></iframe>
+   
+  </div>
+
+  <script>
+    let convertedBlob = null;
+
+    function base64ToBlob(base64, mime) {
+      const byteChars = atob(base64);
+      const byteNumbers = new Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) {
+        byteNumbers[i] = byteChars.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      return new Blob([byteArray], { type: mime });
+    }
+
+    function processarJson() {
+      const input = document.getElementById('jsonInput').value;
+      const erro = document.getElementById('erro');
+      const cabecalho = document.getElementById('cabecalho');
+      const viewer = document.getElementById('pdfViewer');
+
+      try {
+        const json = JSON.parse(input);
+
+        const signedBase64 = json.document?.downloads?.signed_file_base64;
+        const convertedBase64 = json.document?.downloads?.converted_file_base64;
+
+        if (!signedBase64 || !convertedBase64) {
+          erro.textContent = 'Campos base64 ausentes!';
+          return;
+        }
+
+        // Cabeçalho corrigido
+        const eventName = json.event?.name || 'N/A';
+        const templateKey = json.document?.template?.key || 'N/A';
+        const razaoSocial = json.document?.template?.data?.razao_social || 'N/A';
+
+        cabecalho.innerHTML = `
+          <strong>Evento:</strong> ${eventName}<br>
+          <strong>Template:</strong> ${templateKey}<br>
+          <strong>Razão Social:</strong> ${razaoSocial}
+        `;
+
+        // Exibir PDF
+        //const signedBlob = base64ToBlob(signedBase64, 'application/pdf');
+		const signedBlob = base64ToBlob(convertedBase64, 'application/pdf');
+        const signedUrl = URL.createObjectURL(signedBlob);
+        viewer.src = signedUrl;
+
+        // Preparar download do convertido
+        convertedBlob = base64ToBlob(convertedBase64, 'application/pdf');
+
+        erro.textContent = '';
+      } catch (e) {
+        erro.textContent = 'JSON inválido ou erro na leitura!';
+        cabecalho.innerHTML = '';
+        viewer.src = '';
+        convertedBlob = null;
+      }
+    }
+
+	function baixarConvertido() {
+  if (!convertedBlob) {
+    alert('Nenhum arquivo convertido disponível!');
+    return;
+  }
+
+  const spinner = document.getElementById('spinner');
+  const button = document.querySelector('button[onclick="baixarConvertido()"]');
+
+  spinner.style.display = 'block';
+  button.disabled = true;
+
+  setTimeout(() => {
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(convertedBlob);
+    link.download = 'arquivo_convertido.pdf';
+
+    // Adiciona ao DOM para compatibilidade com Edge
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    spinner.style.display = 'none';
+    button.disabled = false;
+  }, 1000);
+}
+  </script>
+
+</body>
+</html>

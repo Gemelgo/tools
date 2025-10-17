@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Remover Quebras de Linha</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      color: #333;
+      margin-top: 0px;     /* Reduz espaço acima do título */
+	  margin-bottom: 10px; /* Espaço abaixo */
+      line-height: 1.2;    /* Altura da linha mais compacta */
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 600px;
+      width: 100%;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+      margin-bottom: 20px;
+    }
+
+    button {
+      background-color: #8A4DB3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h2>Remover Quebras de Linha</h2>
+  <div class="container">
+    <label for="inputText">Texto com quebras de linha:</label>
+    <textarea id="inputText" rows="8" placeholder="Cole seu texto aqui quando copiado dos logs do cofre de senhas..."></textarea>
+
+    <div class="button-group">
+      <button onclick="removerQuebras()">Remover Quebras de Linha</button>
+      <button onclick="copiarTexto()">Copiar Texto</button>
+    </div>
+
+    <label for="outputText">Texto sem quebras:</label>
+    <textarea id="outputText" rows="8" readonly></textarea>
+  </div>
+
+  <script>
+    function removerQuebras() {
+      const input = document.getElementById("inputText").value;
+      const semQuebras = input.replace(/\r?\n|\r/g, '');
+      document.getElementById("outputText").value = semQuebras;
+    }
+
+    async function copiarTexto() {
+      const texto = document.getElementById("outputText").value;
+      try {
+        await navigator.clipboard.writeText(texto);
+        alert("Texto copiado para a área de transferência!");
+      } catch (err) {
+        alert("Falha ao copiar o texto: " + err);
+      }
+    }
+  </script>
+</body>
+</html>

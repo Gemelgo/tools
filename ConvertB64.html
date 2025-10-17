@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+<link rel="shortcut icon" href="C:/temp/favicon.ico" type="image/x-icon">
+<link rel="icon" href="C:/temp/favicon.ico" type="image/x-icon">
+<meta name="author" content="Gemelgo('͜ʖ')">
+  <title>Conversor Base64 ↔ PDF</title>
+  <style>
+   	body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 40px;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+	
+    h2 {
+      text-align: center;
+	  margin-top: 0px;     /* Reduz espaço acima do título */
+	  margin-bottom: 10px; /* Espaço abaixo */
+      line-height: 1.2;    /* Altura da linha mais compacta */
+	}
+    textarea {
+      width: 100%;
+      height: 180px;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+    .buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    button {
+      flex: 1;
+      padding: 10px;
+      font-size: 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #8A4DB3;
+      color: white;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #A87DC9;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+
+    label {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      font-size: 1em;
+    }
+
+	
+    #output {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 0.9em;
+      max-height: 150px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .drop-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .drop-zone {
+      flex: 1 1 45%;
+      min-width: 250px;
+      border: 2px dashed #420063;
+      background-color: #fff;
+      padding: 20px;
+      text-align: center;
+      transition: background-color 0.3s;
+      box-sizing: border-box;
+    }
+    .drop-zone.dragover {
+      background-color: #e0d4f7;
+    }
+    #copyBtn {
+      background-color: #888;
+      margin-top: 10px;
+    }
+    #copyBtn:hover {
+      background-color: #555;
+    }
+    #downloadBtn {
+      display: none;
+      background-color: #28a745;
+      margin-top: 10px;
+    }
+
+    /* Spinner flutuante */
+    #spinnerOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 6px solid #ccc;
+      border-top: 6px solid #420063;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+	cite {
+      color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Conversor Base64 ↔ PDF</h2>
+<div class="container">
+  <p>📋 Cole o conteúdo PDF em Base64 no campo abaixo:</p>
+  <textarea id="manualBase64" placeholder="Cole aqui o conteúdo Base64..."></textarea>
+  <button onclick="convertManualBase64()">Converter Base64 → PDF</button>
+
+  <h3>Resultado:</h3>
+  <div id="output">O resultado aparecerá aqui...</div>
+  <button onclick="copyBase64()" id="copyBtn">📝 Copiar Base64</button>
+  <button onclick="downloadResult()" id="downloadBtn">📥 Baixar PDF</button>
+
+  <hr>
+  <h3>📂 Arraste arquivos para converter:</h3>
+  <div class="drop-container">
+    <div id="dropPdf" class="drop-zone">
+      <strong>PDF → Base64</strong><br><br>
+      Solte o arquivo PDF aqui
+    </div>
+    <div id="dropBase64" class="drop-zone">
+      <strong>Base64 (.txt) → PDF</strong><br><br>
+      Solte o arquivo Base64 aqui
+    </div>
+  </div>
+  <h3>🔍 Pré-visualização do PDF:</h3>
+<div id="pdfPreview" style="display:none; border:1px solid #ccc; margin-top:10px;">
+  <iframe id="pdfFrame" width="100%" height="500px" style="border:none;"></iframe>
+</div>
+
+  <!-- Spinner flutuante -->
+  <div id="spinnerOverlay">
+    <div class="spinner"></div>
+  </div>
+  
+  <cite>Realizado por: Gemelgo - Vivo - Dev Segurança</cite>
+</div>
+<script>
+  let resultBlob = null;
+
+  function showSpinner() {
+    document.getElementById('spinnerOverlay').style.display = 'flex';
+  }
+
+  function hideSpinner() {
+    document.getElementById('spinnerOverlay').style.display = 'none';
+  }
+
+function convertManualBase64() {
+  const base64 = document.getElementById('manualBase64').value.trim();
+  const output = document.getElementById('output');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const previewContainer = document.getElementById('pdfPreview');
+  const previewFrame = document.getElementById('pdfFrame');
+
+  output.textContent = '';
+  resultBlob = null;
+  downloadBtn.style.display = 'none';
+  previewContainer.style.display = 'none';
+  previewFrame.src = '';
+  showSpinner();
+
+  if (!base64) {
+    alert('Cole o conteúdo Base64.');
+    output.textContent = '⚠️ Nenhum conteúdo colado.';
+    hideSpinner();
+    return;
+  }
+
+  setTimeout(() => {
+    try {
+      const byteChars = atob(base64);
+      const byteArray = new Uint8Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) {
+        byteArray[i] = byteChars.charCodeAt(i);
+      }
+
+      resultBlob = new Blob([byteArray], { type: 'application/pdf' });
+      output.textContent = '✅ PDF gerado com sucesso. Clique em "Baixar PDF" ou visualize abaixo.';
+      downloadBtn.style.display = 'inline-block';
+
+      // Mostrar pré-visualização
+      const url = URL.createObjectURL(resultBlob);
+      previewFrame.src = url;
+      previewContainer.style.display = 'block';
+    } catch (e) {
+      output.textContent = '❌ Erro ao converter Base64.';
+    }
+    hideSpinner();
+  }, 800);
+}
+
+  function downloadResult() {
+    if (!resultBlob) {
+      alert('Nada para baixar.');
+      return;
+    }
+
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(resultBlob);
+    a.href = url;
+    a.download = 'arquivo_convertido.pdf';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function copyBase64() {
+    const output = document.getElementById('output');
+    const copyBtn = document.getElementById('copyBtn');
+    const text = output.textContent.trim();
+    if (!text) {
+      alert('Nada para copiar.');
+      return;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+      copyBtn.textContent = '✅ Copiado!';
+      setTimeout(() => {
+        copyBtn.textContent = '📝 Copiar Base64';
+      }, 20000);
+    }).catch(() => {
+      alert('Erro ao copiar.');
+    });
+  }
+
+  // Drag and drop PDF → Base64
+  const dropPdf = document.getElementById('dropPdf');
+  dropPdf.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropPdf.classList.add('dragover');
+  });
+  dropPdf.addEventListener('dragleave', () => {
+    dropPdf.classList.remove('dragover');
+  });
+  dropPdf.addEventListener('drop', e => {
+    e.preventDefault();
+    dropPdf.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (!file || file.type !== 'application/pdf') {
+      alert('Por favor, solte um arquivo PDF válido.');
+      return;
+    }
+
+    showSpinner();
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result.split(',')[1];
+      document.getElementById('output').textContent = base64;
+      resultBlob = new Blob([base64], { type: 'text/plain' });
+
+      document.getElementById('manualBase64').value = '';
+      document.getElementById('downloadBtn').style.display = 'none';
+      hideSpinner();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Drag and drop Base64 (.txt) → PDF
+  const dropBase64 = document.getElementById('dropBase64');
+  dropBase64.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropBase64.classList.add('dragover');
+  });
+  dropBase64.addEventListener('dragleave', () => {
+    dropBase64.classList.remove('dragover');
+  });
+  dropBase64.addEventListener('drop', e => {
+    e.preventDefault();
+    dropBase64.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (!file || !file.name.endsWith('.txt')) {
+      alert('Por favor, solte um arquivo .txt com conteúdo Base64.');
+      return;
+    }
+
+    showSpinner();
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result.trim();
+      try {
+        const byteChars = atob(base64);
+        const byteArray = new Uint8Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) {
+          byteArray[i] = byteChars.charCodeAt(i);
+        }
+        resultBlob = new Blob([byteArray], { type: 'application/pdf' });
+        document.getElementById('output').textContent = '✅ PDF gerado com sucesso. Clique em "Baixar PDF".';
+        document.getElementById('downloadBtn').style.display = 'inline-block';
+      } catch (e) {
+        document.getElementById('output').textContent = '❌ Erro ao converter Base64.';
+      }
+      hideSpinner();
+    };
+    reader.readAsText(file);
+  });
+  function downloadResult() {
+  if (!resultBlob) {
+    alert('Nada para baixar.');
+    return;
+  }
+
+  const downloadBtn = document.getElementById('downloadBtn');
+  downloadBtn.textContent = '⏳ Preparando...';
+  showSpinner();
+
+  setTimeout(() => {
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(resultBlob);
+    a.href = url;
+    a.download = 'arquivo_convertido.pdf';
+    a.click();
+    URL.revokeObjectURL(url);
+    hideSpinner();
+    downloadBtn.textContent = '📥 Baixar PDF';
+  }, 800);
+}
+</script>
+</body>
+</html>

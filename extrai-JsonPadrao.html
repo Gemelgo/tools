@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualizador de PDF Base64</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+    h2 {
+      color: #2c3e50;
+      text-align: center;
+      margin-top: 0px;
+      margin-bottom: 10px;
+      line-height: 1.2;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #8A4DB3;
+      color: white;
+      transition: background 0.3s;
+      margin-right: 10px;
+      margin-bottom: 20px;
+    }
+    button:hover {
+      background-color: #A87DC9;
+    }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    .info {
+      margin-bottom: 20px;
+      background: #eef;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+    .spinner {
+      display: none;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .spinner svg {
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+<h2>Visualizador de PDF Etiqueta Padrão e Complemento</h2>
+<div class="container">
+  <textarea id="jsonInput" placeholder="Cole aqui o JSON com o response da APi consultarEtiqueta..."></textarea>
+  <button onclick="processarJson()">Processar JSON</button>
+  <button onclick="baixarPadrao()">Download Etiqueta Padrão</button>
+  <button onclick="baixarComplementar()">Download Etiqueta Complementar</button>
+  <button onclick="baixarAmbos()">Download Ambos</button>
+  <div class="spinner" id="spinner">
+    <svg viewBox="0 0 50 50">
+      <circle cx="25" cy="25" r="20" stroke="#0078d4" stroke-width="5" fill="none" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <p class="error" id="erro"></p>
+  <div class="info" id="cabecalho"></div>
+  <h3>PDF: Etiqueta Padrão</h3>
+  <iframe id="pdfViewer"></iframe>
+  <h3>PDF: Etiqueta Complementar</h3>
+  <iframe id="pdfViewer2"></iframe>
+</div>
+<script>
+  let blobPadrao = null;
+  let blobComplementar = null;
+
+  function base64ToBlob(base64, mime) {
+    const byteChars = atob(base64);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+      byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mime });
+  }
+
+  function processarJson() {
+    const input = document.getElementById('jsonInput').value;
+    const erro = document.getElementById('erro');
+    const cabecalho = document.getElementById('cabecalho');
+    const viewer = document.getElementById('pdfViewer');
+    const viewer2 = document.getElementById('pdfViewer2');
+
+    try {
+      const json = JSON.parse(input);
+
+      const base64Padrao = json.resultado?.original_file_base64_padrao;
+      const base64Complementar = json.resultado?.original_file_base64_complementar;
+
+      if (!base64Padrao || !base64Complementar) {
+        erro.textContent = 'Campos base64 ausentes!';
+        return;
+      }
+
+      const protocolo = json.resultado?.protocolo || 'N/A';
+      const tipoDocumento = json.resultado?.tipo_documento || 'N/A';
+      const codigoOferta = json.resultado?.codigo_oferta || 'N/A';
+
+      cabecalho.innerHTML = `
+        <strong>Protocolo:</strong> ${protocolo}<br>
+        <strong>Tipo de Documento:</strong> ${tipoDocumento}<br>
+        <strong>Código da Oferta:</strong> ${codigoOferta}
+      `;
+
+      blobPadrao = base64ToBlob(base64Padrao, 'application/pdf');
+      blobComplementar = base64ToBlob(base64Complementar, 'application/pdf');
+
+      viewer.src = URL.createObjectURL(blobPadrao);
+      viewer2.src = URL.createObjectURL(blobComplementar);
+
+      erro.textContent = '';
+    } catch (e) {
+      erro.textContent = 'JSON inválido ou erro na leitura!';
+      cabecalho.innerHTML = '';
+      viewer.src = '';
+      viewer2.src = '';
+      blobPadrao = null;
+      blobComplementar = null;
+    }
+  }
+
+  function baixar(blob, nome) {
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = nome;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function baixarPadrao() {
+    if (!blobPadrao) {
+      alert('PDF padrão não disponível!');
+      return;
+    }
+    baixar(blobPadrao, 'etiqueta_padrao.pdf');
+  }
+
+  function baixarComplementar() {
+    if (!blobComplementar) {
+      alert('PDF complementar não disponível!');
+      return;
+    }
+    baixar(blobComplementar, 'etiqueta_complementar.pdf');
+  }
+
+  function baixarAmbos() {
+    baixarPadrao();
+    setTimeout(baixarComplementar, 500);
+  }
+</script>
+</body>
+</html>

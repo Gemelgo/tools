@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+	<link rel="shortcut icon" href="C:/temp/favicon.ico" type="image/x-icon">
+	<link rel="icon" href="C:/temp/favicon.ico" type="image/x-icon">
+	<meta name="author" content="Gemelgo('͜ʖ')">
+  <title>Painel de Scripts de Produtividade</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    h2 {
+      color: #333;
+      margin: 20px;
+      text-align: center;
+    }
+
+    .menu {
+      display: flex;
+      justify-content: center;
+      background: linear-gradient(to right, #620093, #8A4DB3);
+      padding: 0;
+      margin: 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);	  
+    }
+
+    .script-tab {
+      flex: 1;
+      padding: 15px 20px;
+      background-color: transparent;
+      color: white;
+      border: none;
+      font-size: 14px;
+	  font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s, font-weight 0.3s;
+      text-align: center;
+      border-bottom: 3px solid transparent;
+    }
+
+    .script-tab:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .script-tab.active {
+      background-color: rgba(255, 255, 255, 0.2);
+      font-weight: bold;
+      border-bottom: 3px solid #fff;
+    }
+
+    .content-area {
+      flex: 1;
+      padding: 0;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+<h2><svg width="23" height="27" viewBox="0 0 29 34" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<rect width="29" height="34" fill="url(#pattern0_101_4)"/>
+<defs>
+<pattern id="pattern0_101_4" patternContentUnits="objectBoundingBox" width="1" height="1">
+<use xlink:href="#image0_101_4" transform="matrix(0.0181818 0 0 0.015508 0 -0.0040107)"/>
+</pattern>
+<image id="image0_101_4" width="55" height="65" preserveAspectRatio="none" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABBBAMAAACHjiGpAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAADBQTFRFAAAAsn/LgzCscBCfZgCZeSCmllC5vI/SqXDG2L/l4s/s7N/yoGDAjECzz6/fxZ/Yg/gdLwAAABB0Uk5TAP///////////+tI//////rwH8oAAAIzSURBVHicldU9SBxBFADg2Yvxfvw7Q9JIkOOwiqKC5BSjRjRNwMCCtsJBUkkQOxuLg8TeAyMKCoJWIsSoCSqGKDm0iWCjtZXXCDnBBCTGdfe92Tdv9nYPnGL3uR83+97Om9EQJYZxL3yUrE3OBeCHfftStuWLnz7D7fzUB2PP4nC3htPFuJGVwcVxMeYyMohsFmH0BYXvTS9Guijsynjx4UsK4aUabk5ReLPnxeVFCsu/lcDwVy+W9fqicbKSCUqo4nXBejMmKjsIny4SVrUL8WBbxDoJ5xOEOXtOMdErGhLSohvCxeqUc70dNenD/zkkLO+RT8LdElfjhKE+fPTrsh+Df/uC0MkH3pTCh9HBtEJ8J43rJZkXy1YOIzVJIV77Fdr16iim1+hJaMT0YKwuQWrVt4xp6JYqx2x3nqN43KplDJMTRhvjmjprphabLaabtEK2mDDvDkc9JVg0haxUZzgbgjDSpCf0/4dCY7CgmYitq+5r039n57dGH15ZPtfcbk9iLSQk8t8N2N/1d3PHkxmBqM25y6Y2vO/T0ZPLapzjxz0tS7u1FbItAAPPEYnUx3LA3nORDgkrC81R8YWh27PWUeGVc8cTyE1oqCANu9f6zvHKlIYRHk8uOu0BJo+EpimGdi1osotgw7soIidtuJbYRaxQftTUPPcUqp1DUEvxRsIBVTk96YewBqxQDbHQXX/EQgMQCg16Jyzf3wN/FO/OxPXbdABWb/0cZ3/e778gH3efTo5Ctbn67QAAAABJRU5ErkJggg=="/>
+</defs>
+</svg> Painel de Scripts de Produtividade</h2>
+
+  <div class="menu">
+    <button class="script-tab" onclick="loadPage(this, 'ConvertB64.html')">🔁 ConvertBase64</button>
+    <button class="script-tab" onclick="loadPage(this, 'extrai-JsonPDF.html')">📄 ExtractPDF Webhook</button>
+	<button class="script-tab" onclick="loadPage(this, 'extrai-JsonPadrao.html')">📄 ExtractPDF Padrao</button>
+    <button class="script-tab" onclick="loadPage(this, 'removerQuebra.html')">✂️ Remover Quebra</button>
+    <button class="script-tab" onclick="loadPage(this, 'jsonFormat.html')">🧾 JSON Format</button>
+    <button class="script-tab" onclick="loadPage(this, 'sha256.html')">🔐 Gerador SHA256</button>
+	<button class="script-tab" onclick="loadPage(this, 'decode_jwt.html')">🧩 Decode JWT</button>
+  </div>
+
+  <div class="content-area">
+    <iframe id="contentFrame" src=""></iframe>
+  </div>
+
+  <script>
+    function loadPage(button, url) {
+      document.getElementById('contentFrame').src = url;
+
+      const tabs = document.querySelectorAll('.script-tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+
+      button.classList.add('active');
+    }
+  </script>
+</body>
+</html>
