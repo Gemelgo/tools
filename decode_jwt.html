@@ -65,6 +65,15 @@
   <div class="container">
     <textarea id="jwtInput" placeholder="Cole aqui o token JWT..."></textarea>
     <button onclick="decodificarJWT()">Decodificar</button>
+
+    <div id="resumo" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; font-family: monospace;">
+      <strong>USER:</strong> <span id="user"></span><br>
+      <strong>ISS:</strong> <span id="iss"></span><br>
+      <strong>SCOPE:</strong> <span id="scope"></span><br>
+      <strong>EXPIRA EM:</strong> <span id="exp"></span><br>
+      <strong>CLIENT_ID:</strong> <span id="client_id"></span>
+    </div>
+
     <h3>Header</h3>
     <pre id="header"></pre>
     <h3>Payload</h3>
@@ -82,6 +91,17 @@
       }).join(''));
     }
 
+    function formatarData(timestamp) {
+      const data = new Date(timestamp * 1000);
+      const meses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+      const dia = String(data.getDate()).padStart(2, '0');
+      const mes = meses[data.getMonth()];
+      const ano = data.getFullYear();
+      const hora = String(data.getHours()).padStart(2, '0');
+      const minuto = String(data.getMinutes()).padStart(2, '0');
+      return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+    }
+
     function decodificarJWT() {
       const input = document.getElementById('jwtInput').value;
       const partes = input.split('.');
@@ -97,6 +117,14 @@
 
         document.getElementById('header').textContent = JSON.stringify(header, null, 2);
         document.getElementById('payload').textContent = JSON.stringify(payload, null, 2);
+
+        // Preencher o bloco DE-PARA
+        document.getElementById('user').textContent = payload["oracle.oauth.user_origin_id"] || '';
+        document.getElementById('iss').textContent = payload["iss"] || '';
+        document.getElementById('scope').textContent = payload["oracle.oauth.scope"] || '';
+        document.getElementById('exp').textContent = payload["exp"] ? formatarData(payload["exp"]) : '';
+        document.getElementById('client_id').textContent = payload["oracle.oauth.client_origin_id"] || '';
+
       } catch (e) {
         alert('Erro ao decodificar o token!');
       }
