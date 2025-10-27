@@ -66,6 +66,30 @@
       height: 100%;
       border: none;
     }
+	#cpf-container {
+	  margin: 10px 20px;
+	  font-size: 16px;
+	  color: #333;
+	  cursor: pointer;
+	  text-align: left;
+	  position: relative;
+	  display: inline-block;
+	}
+
+	#popup {
+	  position: absolute;
+	  top: 25px;
+	  left: 0;
+	  background-color: #620093;
+	  color: white;
+	  padding: 6px 10px;
+	  border-radius: 5px;
+	  font-size: 13px;
+	  opacity: 0;
+	  transition: opacity 0.3s ease-in-out;
+	  white-space: nowrap;
+	  pointer-events: none;
+	}	  
   </style>
 </head>
 <body>
@@ -97,7 +121,11 @@
   <div class="content-area">
     <iframe id="contentFrame" src=""></iframe>
   </div>
-
+<div id="cpf-container" onclick="copyCPF()">
+	<b> Gerador de CPF: </b><span id="cpf-value"></span>
+	<br><small><i>* O CPF será copiado sem pontos e traço.<	i></small>
+</div>
+<div id="popup">CPF copiado!</div>
   <script>
     function loadPage(button, url) {
       document.getElementById('contentFrame').src = url;
@@ -107,6 +135,43 @@
 
       button.classList.add('active');
     }
+ function generateCPF() {
+    const n = [];
+    for (let i = 0; i < 9; i++) n.push(Math.floor(Math.random() * 10));
+
+    const d1 = calcDigit(n, 10);
+    const d2 = calcDigit([...n, d1], 11);
+
+    return [...n, d1, d2].join('');
+  }
+
+  function calcDigit(numbers, factor) {
+    let total = 0;
+    for (let i = 0; i < numbers.length; i++) {
+      total += numbers[i] * (factor - i);
+    }
+    const rest = total % 11;
+    return rest < 2 ? 0 : 11 - rest;
+  }
+
+  function formatCPF(cpf) {
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  function copyCPF() {
+    const formatted = document.getElementById('cpf-value').textContent;
+    const raw = formatted.replace(/\D/g, ''); // remove pontos e traço
+    navigator.clipboard.writeText(raw).then(() => {
+      const popup = document.getElementById('popup');
+      popup.style.opacity = 1;
+      setTimeout(() => popup.style.opacity = 0, 2000);
+    });
+  }
+
+  window.onload = () => {
+    const cpf = generateCPF();
+    document.getElementById('cpf-value').textContent = formatCPF(cpf);
+  };	  
   </script>
 </body>
 </html>
