@@ -13,6 +13,7 @@ Este repositório reúne **ferramentas internas de produtividade**, acessíveis 
 - 📄 **Visualizador de PDF via Base64** – Veja PDFs diretamente no navegador.
 - 🖨️ **Geração de PDF** – Crie PDFs de forma simples.
 - 🛠️ **Painel de Scripts** – Scripts úteis para produtividade.
+- 🎨 **Seletor de Cores** – Capture cores em RGB e Hexa a partir de imagens coladas.
 
 ---
 
