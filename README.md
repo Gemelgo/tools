@@ -12,7 +12,8 @@ Este repositório reúne **ferramentas internas de produtividade**, acessíveis 
 - 🔐 **Decoder JWT** – Decodifique tokens JWT com segurança.
 - 📄 **Visualizador de PDF via Base64** – Veja PDFs diretamente no navegador.
 - 🖨️ **Geração de PDF** – Crie PDFs de forma simples.
-- 🛠️ **Painel de Scripts** – Scripts úteis para produtividade.
+- 🛠️ **Gerador de SHA256** – Scripts úteis para produtividade.
+- 🔐 **Gerador UUID** – Scripts úteis para produtividade.
 - 🎨 **Seletor de Cores** – Capture cores em RGB e Hexa a partir de imagens coladas.
 
 ---
