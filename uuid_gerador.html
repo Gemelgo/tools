@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerador de UUID</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h2 {
+      color: #333;
+    }
+    select, button {
+      padding: 8px 12px;
+      margin: 5px 0;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    #uuidOutput {
+      background-color: #eee;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+    .copy-btn {
+      margin-top: 5px;
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .copy-btn:hover {
+      background-color: #005a9e;
+    }
+    #versionInfo {
+      margin: 10px 0;
+      font-size: 14px;
+      color: #555;
+    }
+    #toast {
+      visibility: hidden;
+      min-width: 200px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 4px;
+      padding: 10px;
+      position: fixed;
+      z-index: 1;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    #toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+    @keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+    @keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
+  </style>
+</head>
+<body>
+  <h2>Gerador de UUID</h2>
+  <label for="uuidVersion">Versão:</label>
+  <select id="uuidVersion">
+    <option value="1">UUID v1</option>
+    <option value="4" selected>UUID v4</option>
+    <option value="5">UUID v5</option>
+    <option value="7">UUID v7</option>
+  </select>
+
+  <div id="versionInfo"></div>
+
+  <button onclick="generateUUID()">Gerar</button>
+  <div id="uuidOutput"></div>
+  <button class="copy-btn" onclick="copyUUID()">Copiar</button>
+
+  <div id="toast">UUID copiado!</div>
+
+  <script type="module">
+    import { v1, v4, v5 } from 'https://cdn.skypack.dev/uuid';
+
+    const infoMap = {
+      '1': 'UUID v1 é baseado em timestamp e endereço MAC. Pode ser decodificado para obter data e origem.',
+      '4': 'UUID v4 é totalmente aleatório. Seguro e não decodificável.',
+      '5': 'UUID v5 é gerado a partir de um nome e namespace usando hash SHA-1. Determinístico.',
+      '7': 'UUID v7 é baseado em timestamp com entropia aleatória. Ordenável e seguro.'
+    };
+
+    let currentUUID = '';
+
+    function updateInfo() {
+      const version = document.getElementById('uuidVersion').value;
+      document.getElementById('versionInfo').textContent = infoMap[version];
+    }
+
+    // Corrigido: adicionar listener diretamente
+    document.getElementById('uuidVersion').addEventListener('change', updateInfo);
+    updateInfo();
+
+    window.generateUUID = function () {
+      const version = document.getElementById('uuidVersion').value;
+      let uuid = '';
+      let info = '';
+
+      if (version === '1') {
+        uuid = v1();
+        const timestampHex = uuid.substring(15, 18) + uuid.substring(9, 13) + uuid.substring(0, 8);
+        const timestamp = parseInt(timestampHex, 16) / 10000 + Date.UTC(1582, 9, 15);
+        info = `Timestamp: ${new Date(timestamp).toISOString()}`;
+      } else if (version === '4') {
+        uuid = v4();
+        info = 'UUID aleatório, não decodificável.';
+      } else if (version === '5') {
+        const namespace = v4();
+        uuid = v5('exemplo.com', namespace);
+        info = `Namespace: ${namespace}`;
+      } else if (version === '7') {
+        const timestamp = Date.now();
+        const timestampHex = timestamp.toString(16).padStart(12, '0');
+        const randomHex = crypto.getRandomValues(new Uint8Array(10)).reduce((acc, val) => acc + val.toString(16).padStart(2, '0'), '');
+        uuid = `${timestampHex.substring(0, 8)}-${timestampHex.substring(8, 12)}-7${randomHex.substring(0, 3)}-${randomHex.substring(3, 7)}-${randomHex.substring(7, 11)}`;
+        info = `Timestamp: ${new Date(timestamp).toISOString()}`;
+      }
+
+      currentUUID = uuid;
+      document.getElementById('uuidOutput').textContent = `UUID: ${uuid}\n${info}`;
+    }
+
+    window.copyUUID = function () {
+      navigator.clipboard.writeText(currentUUID).then(() => {
+        const toast = document.getElementById('toast');
+        toast.className = 'show';
+        setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 3000);
+      });
+    }
+  </script>
+</body>
+</html>
