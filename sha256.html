@@ -1,255 +1,221 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Gerador HMAC-SHA256</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f4f6f8;
-      color: #333;
-      padding: 30px;
-      max-width: 800px;
-      margin: auto;
-    }
+<meta charset="UTF-8">
+<title>Gerador HMAC-SHA256</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f4f6f8;
+    color: #333;
+    padding: 30px;
+    max-width: 900px;
+    margin: auto;
+  }
 
-    h2 {
-      color: #2c3e50;
-      text-align: center;
-	  margin-top: 0px;     /* Reduz espaço acima do título */
-	  margin-bottom: 10px; /* Espaço abaixo */
-      line-height: 1.2;    /* Altura da linha mais compacta */  
-    }
+  h2 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 10px;
+  }
 
-    textarea, input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 14px;
-      font-family: monospace;
-    }
-	 .container {
-      max-width: 800px;
-      margin: auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
+  .container {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
 
-    .drop-zone {
-      border: 2px dashed #3498db;
-      border-radius: 10px;
-      padding: 30px;
-      text-align: center;
-      color: #3498db;
-      background-color: #ecf0f1;
-      cursor: pointer;
-      margin-bottom: 15px;
-    }
+  textarea, input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    font-family: monospace;
+  }
 
-    .drop-zone.dragover {
-      background-color: #d0e6f7;
-    }
+  .drop-zone {
+    border: 2px dashed #3498db;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    color: #3498db;
+    background-color: #ecf0f1;
+    cursor: pointer;
+    margin-bottom: 15px;
+    transition: background-color 0.3s;
+  }
 
-    button {
-      background-color: #8A4DB3;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      margin-right: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-    }
+  .drop-zone.dragover {
+    background-color: #d0e6f7;
+  }
 
-    button:hover {
-      background-color: #A87DC9;
-    }
+  .hmac-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
 
-    pre {
-      background-color: #fff;
-      padding: 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      white-space: break-spaces;
-      word-wrap: break-word;
-      font-family: monospace;
-    }
+  .option-card {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
 
-    .hmac-toggle {
-      margin-bottom: 10px;
-    }
-	.header-container {
-	  display: flex;
-	  justify-content: center; /* centraliza horizontalmente */
-	  align-items: center;     /* alinha verticalmente */
-	  gap: 8px;                /* espaço entre o título e o ícone */
-	  margin-top: 40px;        /* ajuste conforme necessário */
-	}
+  .option-card input[type="radio"] {
+    transform: scale(1.2);
+    margin-right: 6px;
+  }
 
-	.tooltip-container {
-	  position: relative;
-	  display: inline-block;
-	}
+  button {
+    background-color: #8A4DB3;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin-top: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+  }
 
-	.tooltip-icon {
-	  background-color: #007bff;
-	  color: white;
-	  border-radius: 50%;
-	  width: 24px;
-	  height: 24px;
-	  display: flex;
-	  align-items: center;
-	  justify-content: center;
-	  font-weight: bold;
-	  font-size: 14px;
-	  cursor: pointer;
-	}
+  button:hover {
+    background-color: #A87DC9;
+  }
 
-	.tooltip-text {
-	  position: absolute;
-	  bottom: -950%;
-	  left: 50%;
-	  transform: translateX(-50%);
-	  background-color: #333;
-	  color: #fff;
-	  padding: 10px 12px;
-	  border-radius: 6px;
-	  width: 220px; /* define uma largura fixa */
-	  font-size: 13px; /* fonte ligeiramente menor */
-	  line-height: 1.4;
-	  text-align: left;
-	  opacity: 0;
-	  transition: opacity 0.3s;
-	  pointer-events: none;
-	  z-index: 10;
-	  white-space: normal; /* permite quebra de linha */
-	  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-	}
-	.tooltip-container:hover .tooltip-text {
-	  opacity: 1;
-	}
-	
-  </style>
-  
+  pre {
+    background-color: #fff;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    white-space: break-spaces;
+    word-wrap: break-word;
+    font-family: monospace;
+  }
+</style>
 </head>
 <body>
 
-<div class="header-container">
-  <h2>Gerador HMAC-SHA256</h2>
-  <div class="tooltip-container">
-    <span class="tooltip-icon">?</span>
-    <div class="tooltip-text">
-      Em ambiente de preprod, é necessário criar um novo SHA256 para realizar uma requisição ao WebHook do Gedoc/MVE, isto porque o HMAC cadastrado no Sandbox é diferente do registrado na Serasa, em razão disto precisamos substituir o valor do SHA256 exibido no "webhook.site" pela versão correta gerada por esta aplicação, garantindo que a requisição seja validada corretamente pelo Gedoc/Aceite Digital.
-    </div>
-  </div>
-</div>
+<h2>Gerador HMAC-SHA256</h2>
 
 <div class="container">
   <label for="textInput">Texto:</label>
   <textarea id="textInput" rows="6" placeholder="Cole o body do webhook aqui..."></textarea>
+
   <div id="dropZone" class="drop-zone">
-    🗂️ Arraste e solte um arquivo aqui
+    Arraste e solte um arquivo aqui
   </div>
 
-  <div class="hmac-toggle">
-    <input type="checkbox" id="useFixedKey">
-    <label for="useFixedKey">Usar chave HMAC <b>WebHook MVE B2B:</b> ( <code>36e1b036f2397536eaf0df8b30f1bc41</code></label> )
-	<br><i><small>*Neste caso não precisa preencher HMAC no campo abaixo</small></i>
+  <h3>Selecione a chave HMAC:</h3>
+  <div class="hmac-options">
+    <label class="option-card">
+      <input type="radio" name="hmacKey" value="36e1b036f2397536eaf0df8b30f1bc41">
+      MVE B2B <code>36e1b036f2397536eaf0df8b30f1bc41</code>
+    </label>
+    <label class="option-card">
+      <input type="radio" name="hmacKey" value="8c971a846daccefc237f757546fd760f">
+      PAP <code>8c971a846daccefc237f757546fd760f</code>
+    </label>
+    <label class="option-card">
+      <input type="radio" name="hmacKey" value="bcf18acd78b43554afa9d8adc4651a36">
+      Vivo+ <code>bcf18acd78b43554afa9d8adc4651a36</code>
+    </label>
+    <label class="option-card">
+      <input type="radio" name="hmacKey" value="e6cef821d9061c3e257ddefedc9580a8">
+      RGC <code>e6cef821d9061c3e257ddefedc9580a8</code>
+    </label>
   </div>
-<br>
-  <label for="secretInput">Chave Secreta (HMAC):</label>
+
+  <label for="secretInput">Ou insira manualmente:</label>
   <input type="text" id="secretInput" placeholder="Digite sua chave secreta...">
 
   <button onclick="generateHMAC()">Gerar HMAC-SHA256</button>
 
-
   <h3>Resultado:</h3>
   <pre id="result"></pre>
-    <button onclick="copyToClipboard()">Copiar SHA256</button>
+  <button onclick="copyToClipboard()">Copiar SHA256</button>
 </div>
-  <script>
-    let droppedBytes = null;
 
-    const dropZone = document.getElementById('dropZone');
-    const textInput = document.getElementById('textInput');
-    const useFixedKey = document.getElementById('useFixedKey');
-    const secretInput = document.getElementById('secretInput');
+<script>
+let droppedBytes = null;
 
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('dragover');
-    });
+const dropZone = document.getElementById('dropZone');
+const textInput = document.getElementById('textInput');
 
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('dragover');
-    });
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
 
-    dropZone.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
+dropZone.addEventListener('dragleave', () => {
+  dropZone.classList.remove('dragover');
+});
 
-      const file = e.dataTransfer.files[0];
-      if (file) {
-        const arrayBuffer = await file.arrayBuffer();
-        droppedBytes = new Uint8Array(arrayBuffer);
-        dropZone.textContent = `📄 Arquivo carregado: ${file.name}`;
-      }
-    });
+dropZone.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
 
-    textInput.addEventListener('paste', (event) => {
-      event.preventDefault();
-      const clipboardData = event.clipboardData || window.clipboardData;
-      const rawText = clipboardData.getData('text/plain');
-      textInput.value = rawText;
-    });
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const arrayBuffer = await file.arrayBuffer();
+    droppedBytes = new Uint8Array(arrayBuffer);
+    dropZone.textContent = `📄 Arquivo carregado: ${file.name}`;
+  }
+});
 
-    async function generateHMAC() {
-      const result = document.getElementById('result');
-      const enc = new TextEncoder();
+async function generateHMAC() {
+  const result = document.getElementById('result');
+  const enc = new TextEncoder();
 
-      const key = useFixedKey.checked
-        ? '36e1b036f2397536eaf0df8b30f1bc41'
-        : secretInput.value;
+  const selectedRadio = document.querySelector('input[name="hmacKey"]:checked');
+  let key = selectedRadio ? selectedRadio.value : '';
 
-      if (!key) {
-        alert("Por favor, insira a chave secreta ou selecione a chave fixa.");
-        return;
-      }
+  if (!key) {
+    key = document.getElementById('secretInput').value;
+  }
 
-      const keyData = enc.encode(key);
-      const msgData = droppedBytes || enc.encode(textInput.value);
+  if (!key) {
+    alert("Por favor, selecione ou insira a chave secreta.");
+    return;
+  }
 
-      const cryptoKey = await crypto.subtle.importKey(
-        'raw',
-        keyData,
-        { name: 'HMAC', hash: 'SHA-256' },
-        false,
-        ['sign']
-      );
+  const keyData = enc.encode(key);
+  const msgData = droppedBytes || enc.encode(textInput.value);
 
-      const signature = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
-      const hashArray = Array.from(new Uint8Array(signature));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
 
-      result.textContent = hashHex;
-    }
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
+  const hashArray = Array.from(new Uint8Array(signature));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-    function copyToClipboard() {
-      const result = document.getElementById('result').textContent;
-      if (!result) {
-        alert("Nenhum hash gerado para copiar.");
-        return;
-      }
+  result.textContent = hashHex;
+}
 
-      navigator.clipboard.writeText(result)
-        .then(() => alert("SHA256 copiado para a área de transferência!"))
-        .catch(err => alert("Erro ao copiar: " + err));
-    }
-  </script>
+function copyToClipboard() {
+  const result = document.getElementById('result').textContent;
+  if (!result) {
+    alert("Nenhum hash gerado para copiar.");
+    return;
+  }
+
+  navigator.clipboard.writeText(result)
+    .then(() => alert("SHA256 copiado para a área de transferência!"))
+    .catch(err => alert("Erro ao copiar: " + err));
+}
+</script>
 </body>
 </html>
